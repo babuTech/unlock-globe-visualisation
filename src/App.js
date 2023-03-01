@@ -1,15 +1,21 @@
 import io from "socket.io-client";
-import "./App.css";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { COUNTRIES_DATA } from "./data/countries_data";
 import HEX_DATA from "./data/countries_hex_data.json";
-import Globe from 'react-globe.gl';
+import Globe from "react-globe.gl";
+import { Layout } from "antd";
+
+import "antd/dist/reset.css";
+import "./App.css";
+import kisiLogo from "./img/kisi-logo.png";
+import unlockIcon from "./img/unlock-icon.svg";
 
 // import mapMarker from './img/unlock-icon.png'
 const socket = io("http://localhost:4000", {
   transports: ["websocket", "polling"],
 });
 function App() {
+  const { Header, Content, Sider } = Layout;
   const markerSvg = ` 
   <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
    width="40.000000pt" height="40.000000pt" viewBox="0 0 512.000000 512.000000"
@@ -18,7 +24,7 @@ function App() {
   Created by potrace 1.16, written by Peter Selinger 2001-2019
   </metadata>
   <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)"
-  fill="#fff" stroke="green">
+  fill="#4a52ff" stroke="green">
   <path d="M1910 5099 c-418 -88 -762 -396 -895 -804 -80 -246 -74 -563 16 -795
   16 -43 98 -223 183 -401 l153 -323 -41 -20 c-59 -29 -138 -112 -172 -181 l-29
   -60 0 -1115 0 -1115 29 -60 c38 -77 114 -153 191 -191 l60 -29 1155 0 1155 0
@@ -62,34 +68,34 @@ function App() {
     lng: country.longitude,
   };
 
-
   const [data, setData] = useState([]);
   const [gData, setGData] = useState([gDatatemp]);
   const [selectedCountry, setSelectedCountry] = useState({
     lat: country.latitude,
     lng: country.longitude,
-    label: "New Door Unlocked Here"
+    label: "New Door Unlocked Here",
   });
   const [hex, setHex] = useState({ features: [] });
 
   // 1. listen for a cpu event and update the state
   useEffect(() => {
     socket.on("unlock", (unlocksData) => {
-      setData(prevData => [unlocksData, ...prevData]);
+      setData((prevData) => [unlocksData, ...prevData]);
       (async () => {
-        const country = unlocksData
-        console.log('data inside interval', data)
-        setSelectedCountry(
+        const country = unlocksData;
+        console.log("data inside interval", data);
+        setSelectedCountry({
+          lat: country.latitude,
+          lng: country.longitude,
+          label: "New Door Unlocked Here",
+        });
+        setGData((prevData) => [
           {
             lat: country.latitude,
             lng: country.longitude,
-            label: "New Door Unlocked Here"
-          });
-        setGData(prevData => [{
-          lat: country.latitude,
-          lng: country.longitude,
-        }, ...prevData]);
-
+          },
+          ...prevData,
+        ]);
       })();
     });
     setHex(HEX_DATA);
@@ -119,9 +125,6 @@ function App() {
     // };
   }, []);
   useEffect(() => {
-    console.log('unlocks data', data)
-  }, [data]);
-  useEffect(() => {
     const MAP_CENTER = { lat: 0, lng: 0, altitude: 1.5 };
     globeEl.current.pointOfView(MAP_CENTER, 0);
   }, [globeEl]);
@@ -130,42 +133,111 @@ function App() {
     const countryLocation = {
       lat: selectedCountry.lat,
       lng: selectedCountry.lng,
-      altitude: 1.5
+      altitude: 1.5,
     };
     globeEl.current.pointOfView(countryLocation, 0);
   }, [selectedCountry]);
-
   return (
     <div className="App">
-      <h1>Unlocks Data Visualization</h1>
+      <Layout>
+        <Header className="header" style={{ background: "#222747" }}>
+          <div className="logo">
+            <img width={60} src={kisiLogo} />
+          </div>
+        </Header>
+        <Layout>
+          <Sider
+            width={320}
+            style={{
+              background: "#fff",
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              borderRight: '1px solid #c9d7df'
+            }}
+          >
+            <div className="globe_details_holder">
+              <article className="sider_header_text">
+                Details Inside Globe
+              </article>
+              <div className="sider_details_box">
+                <img width={30} src={unlockIcon} alt="unlock-icon" />
+                <article className="sider_details_text">
+                  Unlocked Locations
+                </article>
+              </div>
+              <div className="sider_details_box">
+                <div className="sider_details_icon"></div>
+                <article className="sider_details_text">
+                  Large Sea Areas
+                </article>
+              </div>
+              <div className="sider_details_box">
+                <div className="sider_details_icon">
+                  {[...Array(9).keys()].map((key) => (
+                    <div key={key}></div>
+                  ))}
+                </div>
+                <article className="sider_details_text">
+                  Locks Linked with Kisi
+                </article>
+              </div>
+            </div>
+          </Sider>
+          <Layout
+            style={{
+              padding: "0 24px 24px",
+            }}
+          >
+            <Content
+              style={{
+                padding: "40px 20px",
+                margin: 0,
+                minHeight: 500,
+                background: "#f3f2f3",
+              }}
+            >
+              <h1 className="main_heading_text">Real Time Unlocks Data Visualization</h1>
+              <div className="globe_main_holder">
+                <article className="sub_heading_text">
+                  Unlocks Triggered in Real Time
+                </article>
+                <Globe
+                  globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+                  backgroundColor="rgba(0,0,0,0)"
+                  animateIn={true}
+                  waitForGlobeReady={true}
+                  width={800}
+                  height={600}
+                  htmlElementsData={gData}
+                  htmlElement={(d) => {
+                    const el = document.createElement("div");
+                    el.innerHTML = markerSvg;
+                    el.style.color = "#4a52ff";
+                    el.style.width = "24px";
 
-      <Globe
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
-        htmlElementsData={gData}
-        htmlElement={d => {
-          const el = document.createElement('div');
-          el.innerHTML = markerSvg;
-          el.style.color = '#4a52ff';
-          el.style.width = '24px';
-
-          el.style['pointer-events'] = 'auto';
-          el.style.cursor = 'pointer';
-          el.onclick = () => console.info(d);
-          return el;
-        }}
-        ref={globeEl}
-        backgroundColor="#fafbff"
-        labelsData={[selectedCountry]}
-        labelText={"label"}
-        labelSize={1.6}
-        labelColor={useCallback(() => "white", [])}
-        labelDotRadius={0.8}
-        labelAltitude={0.05}
-        hexPolygonsData={hex.features}
-        hexPolygonResolution={3} //values higher than 3 makes it buggy
-        hexPolygonMargin={0.62}
-        hexPolygonColor={useCallback(() => "#1b66b1", [])}
-      />
+                    el.style["pointer-events"] = "auto";
+                    el.style.cursor = "pointer";
+                    el.onclick = () => console.info(d);
+                    return el;
+                  }}
+                  ref={globeEl}
+                  labelsData={[selectedCountry]}
+                  labelText={"label"}
+                  labelSize={1.6}
+                  labelColor={useCallback(() => "white", [])}
+                  labelDotRadius={0.8}
+                  labelAltitude={0.05}
+                  hexPolygonsData={hex.features}
+                  hexPolygonResolution={3} //values higher than 3 makes it buggy
+                  hexPolygonMargin={0.62}
+                  hexPolygonColor={useCallback(() => "#1b66b1", [])}
+                />
+              </div>
+            </Content>
+          </Layout>
+        </Layout>
+      </Layout>
     </div>
   );
 }
