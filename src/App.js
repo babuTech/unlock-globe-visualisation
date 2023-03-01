@@ -10,7 +10,7 @@ import kisiLogo from "./img/kisi-logo.png";
 import unlockIcon from "./img/unlock-icon.svg";
 
 const socket = io("http://localhost:4000", {
-  transports: ["websocket", "polling"],
+  transports: ["websocket", "polling"]
 });
 function App() {
   const { Header, Content, Sider } = Layout;

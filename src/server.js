@@ -105,7 +105,7 @@ io.on('connection', client => {
             ]
         }
         client.emit('unlock', unlocksData);
-    }, 8000);
+    }, 3000);
 });
 
 server.listen(4000);
