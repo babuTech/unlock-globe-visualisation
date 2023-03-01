@@ -84,6 +84,7 @@ io.on('connection', client => {
             error_message: null,
             created_at: new Date(),
             location: reandomLocation,
+            message: 'New Door Unlocked Here',
             references: [
                 {
                     id: 0,

@@ -1,16 +1,14 @@
 import io from "socket.io-client";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { COUNTRIES_DATA } from "./data/countries_data";
-import HEX_DATA from "./data/countries_hex_data.json";
 import Globe from "react-globe.gl";
 import { Layout } from "antd";
 
+import HEX_DATA from "./data/countries_hex_data.json";
 import "antd/dist/reset.css";
 import "./App.css";
 import kisiLogo from "./img/kisi-logo.png";
 import unlockIcon from "./img/unlock-icon.svg";
 
-// import mapMarker from './img/unlock-icon.png'
 const socket = io("http://localhost:4000", {
   transports: ["websocket", "polling"],
 });
@@ -18,7 +16,7 @@ function App() {
   const { Header, Content, Sider } = Layout;
   const markerSvg = ` 
   <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-   width="30.000000pt" height="30.000000pt" viewBox="0 0 512.000000 512.000000"
+   width="25.000000pt" height="25.000000pt" viewBox="0 0 512.000000 512.000000"
    preserveAspectRatio="xMidYMid meet">
   <metadata>
   Created by potrace 1.16, written by Peter Selinger 2001-2019
@@ -61,37 +59,43 @@ function App() {
   </svg>
   `;
   const globeEl = useRef();
-  let country_i = 0;
-  const country = COUNTRIES_DATA[country_i];
+  const location = {
+    latitude: 23.424076,
+    longitude: 53.847818,
+  };
   let gDatatemp = {
-    lat: country.latitude,
-    lng: country.longitude,
+    lat: location.latitude,
+    lng: location.longitude,
   };
 
-  const [data, setData] = useState([]);
+  const [unlocksData, setUnlocksData] = useState([]);
   const [gData, setGData] = useState([gDatatemp]);
   const [selectedCountry, setSelectedCountry] = useState({
-    lat: country.latitude,
-    lng: country.longitude,
+    lat: location.latitude,
+    lng: location.longitude,
     label: "New Door Unlocked Here",
   });
   const [hex, setHex] = useState({ features: [] });
 
-  // 1. listen for a cpu event and update the state
   useEffect(() => {
-    socket.on("unlock", (unlocksData) => {
-      setData((prevData) => [unlocksData, ...prevData]);
+    //connecting with the websocket
+    socket.on("unlock", (unlockData) => {
       (async () => {
-        const country = unlocksData;
+        //storing all unlocked events data
+        setUnlocksData((prevData => [unlockData, ...prevData]
+        ))
+        const unlockedData = unlockData;
+        // to display new unlocked place on globe
         setSelectedCountry({
-          lat: country.location.latitude,
-          lng: country.location.longitude,
-          label: "New Door Unlocked Here",
+          lat: unlockedData.location.latitude,
+          lng: unlockedData.location.longitude,
+          label: unlockedData.message,
         });
+        //storing all unlocked places to show on Globe
         setGData((prevData) => [
           {
-            lat: country.location.latitude,
-            lng: country.location.longitude,
+            lat: unlockedData.location.latitude,
+            lng: unlockedData.location.longitude,
           },
           ...prevData,
         ]);
@@ -99,14 +103,7 @@ function App() {
     });
     setHex(HEX_DATA);
   }, []);
-  useEffect(() => {
-    console.log("statedata", data);
-  });
-  useEffect(() => {
-    const MAP_CENTER = { lat: 0, lng: 0, altitude: 1.5 };
-    globeEl.current.pointOfView(MAP_CENTER, 0);
-  }, [globeEl]);
-
+  //changing globe pointofview every selectedcountry changes
   useEffect(() => {
     const countryLocation = {
       lat: selectedCountry.lat,
@@ -120,7 +117,7 @@ function App() {
       <Layout>
         <Header className="layout_header_element">
           <div className="logo">
-            <img width={60} src={kisiLogo} />
+            <img width={60} src={kisiLogo} alt='kisi logo' />
           </div>
         </Header>
         <Layout className="layout_sider_content">
@@ -130,7 +127,12 @@ function App() {
                 Details Inside Globe
               </article>
               <div className="sider_details_box">
-                <img width={30} src={unlockIcon} alt="unlock-icon" />
+                <img
+                  style={{ marginBottom: "5px" }}
+                  width={30}
+                  src={unlockIcon}
+                  alt="unlock-icon"
+                />
                 <article className="sider_details_text">
                   Unlocked Locations
                 </article>
@@ -162,6 +164,7 @@ function App() {
                 <article className="sub_heading_text">
                   Unlocks Triggered in Real Time
                 </article>
+                {/* globe element which displays all the unlocked places */}
                 <Globe
                   globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
                   backgroundColor="rgba(0,0,0,0)"
@@ -198,7 +201,7 @@ function App() {
                   labelText={"label"}
                   labelSize={1.6}
                   labelColor={useCallback(() => "white", [])}
-                  labelDotRadius={0.8}
+                  labelDotRadius={0.2}
                   labelAltitude={0.1}
                   hexPolygonsData={hex.features}
                   hexPolygonResolution={3} //values higher than 3 makes it buggy
@@ -209,8 +212,12 @@ function App() {
               <h1 className="main_heading_text">Our Mission</h1>
               <div className="globe_main_holder">
                 <article className="sider_details_text">
-                  Develop innovative products and solutions to ensure ease of facility access and remote space management. Provide access systems to create a secure future where spaces are connected and accessible without boundaries.
-                </article></div>
+                  Develop innovative products and solutions to ensure ease of
+                  facility access and remote space management. Provide access
+                  systems to create a secure future where spaces are connected
+                  and accessible without boundaries.
+                </article>
+              </div>
             </Content>
           </Layout>
         </Layout>
