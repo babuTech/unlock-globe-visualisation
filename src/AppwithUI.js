@@ -18,7 +18,7 @@ function App() {
   const { Header, Content, Sider } = Layout;
   const markerSvg = ` 
   <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-   width="30.000000pt" height="30.000000pt" viewBox="0 0 512.000000 512.000000"
+   width="40.000000pt" height="40.000000pt" viewBox="0 0 512.000000 512.000000"
    preserveAspectRatio="xMidYMid meet">
   <metadata>
   Created by potrace 1.16, written by Peter Selinger 2001-2019
@@ -83,25 +83,47 @@ function App() {
       setData((prevData) => [unlocksData, ...prevData]);
       (async () => {
         const country = unlocksData;
+        console.log("data inside interval", data);
         setSelectedCountry({
-          lat: country.location.latitude,
-          lng: country.location.longitude,
+          lat: country.latitude,
+          lng: country.longitude,
           label: "New Door Unlocked Here",
         });
         setGData((prevData) => [
           {
-            lat: country.location.latitude,
-            lng: country.location.longitude,
+            lat: country.latitude,
+            lng: country.longitude,
           },
           ...prevData,
         ]);
       })();
     });
     setHex(HEX_DATA);
+    // let interval;
+    // interval = setInterval((data) => {
+    //   (async () => {
+    //     const country = COUNTRIES_DATA[country_i++];
+    //     console.log('data inside interval', data)
+    //     setSelectedCountry(
+    //       {
+    //         lat: country.latitude,
+    //         lng: country.longitude,
+    //         label: "New Door Unlocked Here"
+    //       });
+    //     setGData(prevData => [{
+    //       lat: country.latitude,
+    //       lng: country.longitude,
+    //     }, ...prevData]);
+
+    //   })();
+    // }, 8000); //Every 3 seconds
+
+    // return () => {
+    //   if (interval) {
+    //     clearInterval(interval);
+    //   }
+    // };
   }, []);
-  useEffect(() => {
-    console.log("statedata", data);
-  });
   useEffect(() => {
     const MAP_CENTER = { lat: 0, lng: 0, altitude: 1.5 };
     globeEl.current.pointOfView(MAP_CENTER, 0);
@@ -116,15 +138,24 @@ function App() {
     globeEl.current.pointOfView(countryLocation, 0);
   }, [selectedCountry]);
   return (
-    <div className="app_main_holder">
+    <div className="App">
       <Layout>
-        <Header className="layout_header_element">
+        <Header className="header" style={{ background: "#222747" }}>
           <div className="logo">
             <img width={60} src={kisiLogo} />
           </div>
         </Header>
-        <Layout className="layout_sider_content">
-          <Sider className="layout_sider_element">
+        <Layout>
+          <Sider
+            width={320}
+            style={{
+              background: "#fff",
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              borderRight: '1px solid #c9d7df'
+            }}
+          >
             <div className="globe_details_holder">
               <article className="sider_header_text">
                 Details Inside Globe
@@ -153,11 +184,20 @@ function App() {
               </div>
             </div>
           </Sider>
-          <Layout className="layout_content_holder">
-            <Content className="layout_content_element">
-              <h1 className="main_heading_text">
-                Real Time Unlocks Data Visualization
-              </h1>
+          <Layout
+            style={{
+              padding: "0 24px 24px",
+            }}
+          >
+            <Content
+              style={{
+                padding: "40px 20px",
+                margin: 0,
+                minHeight: 500,
+                background: "#f3f2f3",
+              }}
+            >
+              <h1 className="main_heading_text">Real Time Unlocks Data Visualization</h1>
               <div className="globe_main_holder">
                 <article className="sub_heading_text">
                   Unlocks Triggered in Real Time
@@ -167,20 +207,8 @@ function App() {
                   backgroundColor="rgba(0,0,0,0)"
                   animateIn={true}
                   waitForGlobeReady={true}
-                  width={
-                    window.innerWidth >= 1200
-                      ? 800
-                      : window.innerWidth >= 525
-                        ? 600
-                        : 280
-                  }
-                  height={
-                    window.innerWidth >= 1200
-                      ? 500
-                      : window.innerWidth >= 525
-                        ? 400
-                        : 300
-                  }
+                  width={800}
+                  height={600}
                   htmlElementsData={gData}
                   htmlElement={(d) => {
                     const el = document.createElement("div");
@@ -199,18 +227,13 @@ function App() {
                   labelSize={1.6}
                   labelColor={useCallback(() => "white", [])}
                   labelDotRadius={0.8}
-                  labelAltitude={0.1}
+                  labelAltitude={0.05}
                   hexPolygonsData={hex.features}
                   hexPolygonResolution={3} //values higher than 3 makes it buggy
                   hexPolygonMargin={0.62}
                   hexPolygonColor={useCallback(() => "#1b66b1", [])}
                 />
               </div>
-              <h1 className="main_heading_text">Our Mission</h1>
-              <div className="globe_main_holder">
-                <article className="sider_details_text">
-                  Develop innovative products and solutions to ensure ease of facility access and remote space management. Provide access systems to create a secure future where spaces are connected and accessible without boundaries.
-                </article></div>
             </Content>
           </Layout>
         </Layout>

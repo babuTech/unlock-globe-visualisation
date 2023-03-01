@@ -3,7 +3,7 @@ const server = require('http').createServer();
 const io = require('socket.io')(server, {
     transports: ['websocket', 'polling']
 });
-
+//random location coordinates to show realtime unlocks
 const randomLocationsCords = [
     {
         latitude: 23.424076,
@@ -60,56 +60,49 @@ const randomLocationsCords = [
         latitude: 35.86166,
         longitude: 104.195397,
     }];
-// 1. listen for socket connections
-let idCount = 0;
+
 let country_i = 0;
+let idCounttemp = 0;
 io.on('connection', client => {
     console.log('Connected to Server');
     setInterval(() => {
         if (country_i == randomLocationsCords.length - 1) {
             country_i = 0;
         }
-        let country = randomLocationsCords[country_i++];
-        // 2. every second, emit a 'cpu' event to user
+        let reandomLocation = randomLocationsCords[country_i++];
         let unlocksData = {
-            country: "CA",
-            latitude: country.latitude,
-            longitude: country.longitude,
-            name: "Canada"
+            id: idCounttemp++,
+            actor_type: "string",
+            actor_id: 0,
+            actor_name: "string",
+            action: "unlock",
+            object_type: "Lock",
+            object_id: 0,
+            object_name: "string",
+            success: true,
+            error_code: null,
+            error_message: null,
+            created_at: new Date(),
+            location: reandomLocation,
+            references: [
+                {
+                    id: 0,
+                    type: "Lock"
+                },
+                {
+                    id: 0,
+                    type: "Organization"
+                },
+                {
+                    id: 0,
+                    type: "Place"
+                },
+                {
+                    id: 0,
+                    type: "RoleAssignment"
+                }
+            ]
         }
-        // let unlocksData = {
-        //     id: idCounttemp,
-        //     actor_type: "string",
-        //     actor_id: 0,
-        //     actor_name: "string",
-        //     action: "unlock",
-        //     object_type: "Lock",
-        //     object_id: 0,
-        //     object_name: "string",
-        //     success: true,
-        //     error_code: null,
-        //     error_message: null,
-        //     created_at: new Date(),
-        //     location: { latitude: 18.068581, longitude: 59.329323 },
-        //     references: [
-        //         {
-        //             id: 0,
-        //             type: "Lock"
-        //         },
-        //         {
-        //             id: 0,
-        //             type: "Organization"
-        //         },
-        //         {
-        //             id: 0,
-        //             type: "Place"
-        //         },
-        //         {
-        //             id: 0,
-        //             type: "RoleAssignment"
-        //         }
-        //     ]
-        // }
         client.emit('unlock', unlocksData);
     }, 8000);
 });
