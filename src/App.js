@@ -63,7 +63,7 @@ function App() {
   };
 
 
-  const [data, setData] = useState({});
+  const [data, setData] = useState([]);
   const [gData, setGData] = useState([gDatatemp]);
   const [selectedCountry, setSelectedCountry] = useState({
     lat: country.latitude,
@@ -75,13 +75,9 @@ function App() {
   // 1. listen for a cpu event and update the state
   useEffect(() => {
     socket.on("unlock", (unlocksData) => {
-      setData(unlocksData);
-    });
-    setHex(HEX_DATA);
-    let interval;
-    interval = setInterval(() => {
+      setData(prevData => [unlocksData, ...prevData]);
       (async () => {
-        const country = COUNTRIES_DATA[country_i++];
+        const country = unlocksData
         console.log('data inside interval', data)
         setSelectedCountry(
           {
@@ -95,13 +91,32 @@ function App() {
         }, ...prevData]);
 
       })();
-    }, 8000); //Every 3 seconds
+    });
+    setHex(HEX_DATA);
+    // let interval;
+    // interval = setInterval((data) => {
+    //   (async () => {
+    //     const country = COUNTRIES_DATA[country_i++];
+    //     console.log('data inside interval', data)
+    //     setSelectedCountry(
+    //       {
+    //         lat: country.latitude,
+    //         lng: country.longitude,
+    //         label: "New Door Unlocked Here"
+    //       });
+    //     setGData(prevData => [{
+    //       lat: country.latitude,
+    //       lng: country.longitude,
+    //     }, ...prevData]);
 
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
+    //   })();
+    // }, 8000); //Every 3 seconds
+
+    // return () => {
+    //   if (interval) {
+    //     clearInterval(interval);
+    //   }
+    // };
   }, []);
   useEffect(() => {
     console.log('unlocks data', data)
